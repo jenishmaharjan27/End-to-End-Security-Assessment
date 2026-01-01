@@ -108,7 +108,7 @@ A full vulnerability scan was performed against the Metasploitable 2 system usin
 </p>
 <br>
 The vulnerability scan identified several Critical (Severity 10.0) findings. While all high severity items require attention, they are prioritized below based on the Path of Least Resistance, an attacker would likely take within your LAN segment.
-<br>
+<br><br>
 <img width="2560" height="1440" alt="Screenshot (310)" src="https://github.com/user-attachments/assets/71b86cd7-5ad6-4481-9218-2d4680f8c4a2" />
 <p align="center">
   <em>Figure 3.8: Prioritizing Remediation based on Risk Scores</em>
@@ -155,23 +155,137 @@ A critical vulnerability in the vsftpd 2.3.4 service was exploited using the Met
 ---
 
 ### 5. Password Cracking
-After gaining root access, password hashes were extracted from the `/etc/shadow` file and cracked using John the Ripper to demonstrate the risk of weak credentials.
-
-*Ref 8: Extracted Password Hashes*  
-*Ref 9: Cracked Password Results*
+After gaining root access, password hashes were extracted from the `/etc/shadow` and `/etc/passwd` file and cracked using John the Ripper to demonstrate the risk of weak credentials.
+<br><br>
+<img width="2560" height="1440" alt="Screenshot (315)" src="https://github.com/user-attachments/assets/246b6d4c-2900-40c6-8384-81dd2692635e" />
+<p align="center">
+  <em>Figure 5.1: Unauthorized Access to the /etc/shadow File via Root Privileges</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (316)" src="https://github.com/user-attachments/assets/f37440d4-6fbc-43e1-9fd7-3a48dfbf2b69" />
+<p align="center">
+  <em>Figure 5.2: Secure Exfiltration of Password Hashes to the Local Attacker Machine</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (318)" src="https://github.com/user-attachments/assets/f8fd249e-3cc3-47c9-967c-1395189f1315" />
+<p align="center">
+  <em>Figure 5.3: Unshadowing and combining credentials into crackable format and Execution of a Brute-Force Attack using John the Ripper</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (320)" src="https://github.com/user-attachments/assets/cc7f41de-fe1a-4475-aee4-bdee7802b821" />
+<p align="center">
+  <em>Figure 5.4: Recovery of Plaintext Credentials from Cracked Hashes</em>
+</p>
+<br>
 
 ---
 
 ### 6. Secure Coding and Web Vulnerability Mitigation
 DVWA was used to identify and exploit common web vulnerabilities, followed by secure code remediation.
+<br><br>
+<img width="2560" height="1440" alt="Screenshot (321)" src="https://github.com/user-attachments/assets/7eefaf9c-da86-49bf-b837-5039c9a4cd1e" />
+<p align="center">
+  <em>Figure 6.1: Verifying the Apache Web Server Operational Status</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (322)" src="https://github.com/user-attachments/assets/4786a221-8b70-478d-a068-7a32a495adbd" />
+<p align="center">
+  <em>Figure 6.2: Confirming Active MariaDB Database Services</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (323)" src="https://github.com/user-attachments/assets/b5c055b0-9f5e-4ac9-ac4c-60bfcef55d8d" />
+<p align="center">
+  <em>Figure 6.3: Initializing the Damn Vulnerable Web Application (DVWA) Dashboard</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (324)" src="https://github.com/user-attachments/assets/5a8740e0-1b72-408b-b91d-37613e11820b" />
+<p align="center">
+  <em>Figure 6.4: Adjusting Application Security Levels to "Low" for Vulnerability Testing</em>
+</p>
+<br>
 
 - SQL Injection fixed using prepared statements
-- Reflected XSS mitigated using output encoding
-- CSRF prevented using anti-CSRF tokens
+<img width="2560" height="1440" alt="Screenshot (326)" src="https://github.com/user-attachments/assets/526322f2-ef31-4ca1-8c92-09c3a433f487" />
+<p align="center">
+  <em>Figure 6.5: Successful SQL Injection via ' OR 1=1 # Payload to Bypass Authentication and Enumerate Database Records</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (328)" src="https://github.com/user-attachments/assets/715862a2-8164-44b3-965a-918d0a94f54d" />
+<p align="center">
+  <em>Figure 6.6: Source Code Analysis of the Insecure SQL Query Construction</em>
+</p>
+<br>
+The database interpreted the '1'='1' statement as always true.
+As a result, instead of returning a single user’s information, the application exposed the first name and surname of all users, including the administrator.
+This is a classic case of authentication bypass and unauthorized data disclosure.
 
-*Ref 10: SQL Injection Exploitation and Patch*  
-*Ref 11: Reflected XSS Exploitation and Patch*  
-*Ref 12: CSRF Attack and Mitigation*
+**Vulnerable Code:**
+
+$id = $_REQUEST['id']; 
+
+$query = "SELECT first_name, last_name FROM users WHERE user_id = '$id';";
+
+**Patching Procress**
+1. Use placeholders instead of directly inserting user input:
+
+    $stmt = $pdo->prepare('SELECT first_name, last_name FROM users WHERE user_id = :id');
+
+2. Bind user input safely as a string:
+
+    $stmt->bindParam(':id', $id, PDO::PARAM_STR);
+
+3. Execute the query safely:
+
+    $stmt->execute();
+
+    $result = $stmt->fetchAll();
+
+
+
+- Reflected XSS mitigated using output encoding
+<img width="2560" height="1440" alt="Screenshot (329)" src="https://github.com/user-attachments/assets/36590e37-db4d-444d-822d-f15487c20ad8" />
+<p align="center">
+  <em>Figure 6.7: Identifying an Input Vector Reflecting Unsanitized Data into the HTML DOM</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (330)" src="https://github.com/user-attachments/assets/6d224c0d-fa71-4ba8-b22e-37993d97871f" />
+<p align="center">
+  <em>Figure 6.8: Execution of a Reflected XSS Payload Triggering an Unauthorized Browser Alert</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (331)" src="https://github.com/user-attachments/assets/2eb2932d-d02b-4823-9a08-434675496262" />
+<p align="center">
+  <em>Figure 6.9: Analysis of the Vulnerable Source Code Facilitating the XSS Attack</em>
+</p>
+<br>
+
+- CSRF prevented using anti-CSRF tokens
+<img width="2560" height="1440" alt="Screenshot (332)" src="https://github.com/user-attachments/assets/24a7f01d-826e-4af5-b357-3fb3a9347896" />
+<p align="center">
+  <em>Figure 6.10: Intercepting and Analyzing the HTTP GET Request for Password Modification</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (334)" src="https://github.com/user-attachments/assets/cdc0a09c-002f-46be-a6e4-88a55ca23829" />
+<p align="center">
+  <em>Figure 6.11: Examining URL Parameter Exposure During the Password Change Process</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (335)" src="https://github.com/user-attachments/assets/16cc1cf2-a6fc-4977-b471-9495b2994835" />
+<img width="2560" height="1440" alt="Screenshot (336)" src="https://github.com/user-attachments/assets/c641e169-cb8e-4ad4-a643-7fef75e98259" />
+<p align="center">
+  <em>Figure 6.12: Execution of a Malicious CSRF Payload Within the Victim’s Browser Context</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (337)" src="https://github.com/user-attachments/assets/f48d0b73-c8db-4f69-a105-c295bd696d5b" />
+<p align="center">
+  <em>Figure 6.13: Verification of Unauthorized Password Change via CSRF Exploitation</em>
+</p>
+<br>
+<img width="2560" height="1440" alt="Screenshot (338)" src="https://github.com/user-attachments/assets/1a8ee3ca-cf59-4407-9609-3db453141b02" />
+<p align="center">
+  <em>Figure 6.14: Source Code Review of the Insecure Password Update Functionality</em>
+</p>
+<br>
 
 ---
 
