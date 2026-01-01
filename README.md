@@ -204,7 +204,7 @@ DVWA was used to identify and exploit common web vulnerabilities, followed by se
 </p>
 <br>
 
-- SQL Injection fixed using prepared statements
+#### 1. SQL Injection fixed using prepared statements
 <img width="2560" height="1440" alt="Screenshot (326)" src="https://github.com/user-attachments/assets/526322f2-ef31-4ca1-8c92-09c3a433f487" />
 <p align="center">
   <em>Figure 6.5: Successful SQL Injection via ' OR 1=1 # Payload to Bypass Authentication and Enumerate Database Records</em>
@@ -242,7 +242,9 @@ $query = "SELECT first_name, last_name FROM users WHERE user_id = '$id';";
 
 
 
-- Reflected XSS mitigated using output encoding
+#### 2. Reflected XSS mitigated using output encoding
+The application was manipulated into reflecting a malicious payload, <script>alert('XSS_Successful')</script>, directly into its HTML response. Due to a lack of output encoding, the browser interpreted the input as executable code rather than plain text. This confirms a Reflected XSS vulnerability, where the application fails to distinguish between legitimate data and malicious instructions.
+<br><br>
 <img width="2560" height="1440" alt="Screenshot (329)" src="https://github.com/user-attachments/assets/36590e37-db4d-444d-822d-f15487c20ad8" />
 <p align="center">
   <em>Figure 6.7: Identifying an Input Vector Reflecting Unsanitized Data into the HTML DOM</em>
@@ -253,13 +255,41 @@ $query = "SELECT first_name, last_name FROM users WHERE user_id = '$id';";
   <em>Figure 6.8: Execution of a Reflected XSS Payload Triggering an Unauthorized Browser Alert</em>
 </p>
 <br>
+
+The flaw exists because the application uses the echo command to print the name parameter directly from the URL ($_GET) into the page without any filtering.
+
+**Vulnerable Code:**
+
+Insecure: Direct reflection of unsanitized GET parameters
+
+if( array_key_exists( "name", $_GET ) && $_GET[ 'name' ] != NULL ) {
+
+    echo '<pre>Hello ' . $_GET[ 'name' ] . '</pre>';
+    
+}
+
 <img width="2560" height="1440" alt="Screenshot (331)" src="https://github.com/user-attachments/assets/2eb2932d-d02b-4823-9a08-434675496262" />
 <p align="center">
   <em>Figure 6.9: Analysis of the Vulnerable Source Code Facilitating the XSS Attack</em>
 </p>
 <br>
 
-- CSRF prevented using anti-CSRF tokens
+**Patching Procress**
+To neutralize this risk, Contextual Output Encoding is implemented. By wrapping the input in the htmlspecialchars() function, sensitive characters like < and > are converted into their safe HTML entity equivalents (&lt; and &gt;).
+
+// Secure: Output is encoded before being rendered
+
+if( array_key_exists( "name", $_GET ) && $_GET[ 'name' ] != NULL ) {
+
+    // Convert special characters to HTML entities
+    $name = htmlspecialchars($_GET[ 'name' ], ENT_QUOTES, 'UTF-8');
+    echo '<pre>Hello ' . $name . '</pre>';
+    
+}
+
+#### 3. CSRF prevented using anti-CSRF tokens
+The application is vulnerable to CSRF because it lacks request verification. It blindly executes commands based solely on the presence of a valid Session Cookie, failing to distinguish between a user's deliberate action and a request triggered by a malicious third-party script.
+<br><br>
 <img width="2560" height="1440" alt="Screenshot (332)" src="https://github.com/user-attachments/assets/24a7f01d-826e-4af5-b357-3fb3a9347896" />
 <p align="center">
   <em>Figure 6.10: Intercepting and Analyzing the HTTP GET Request for Password Modification</em>
@@ -281,11 +311,32 @@ $query = "SELECT first_name, last_name FROM users WHERE user_id = '$id';";
   <em>Figure 6.13: Verification of Unauthorized Password Change via CSRF Exploitation</em>
 </p>
 <br>
+
+**Vulnerable Code:**
+
+The code fragment is flawed because it accepts password changes via a simple GET request without any secondary verification or unique tokens.
+
+// Insecure: No validation of user intent or request origin
+
+$password = $_GET[ 'password_new' ];
+
+// The application processes the change immediately if a session cookie is present
+<br>
 <img width="2560" height="1440" alt="Screenshot (338)" src="https://github.com/user-attachments/assets/1a8ee3ca-cf59-4407-9609-3db453141b02" />
 <p align="center">
   <em>Figure 6.14: Source Code Review of the Insecure Password Update Functionality</em>
 </p>
 <br>
+
+**Patching Procress**
+
+To mitigate CSRF, the application must implement mechanisms to verify that the request was intentionally initiated by the user.
+
+Anti-CSRF Tokens: The most effective defense is to include a unique, unpredictable, and hidden token in every state-changing request. The server validates this token before processing the command.
+
+SameSite Cookie Attribute: Setting cookies to SameSite=Strict or Lax prevents the browser from sending session cookies during cross-site requests.
+
+Re-authentication: For sensitive actions like password changes, the application should require the user to provide their current password.
 
 ---
 
