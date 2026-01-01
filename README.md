@@ -355,7 +355,7 @@ This project demonstrated the full lifecycle of a cyber attack and its defense. 
 ---
 
 ## OpenVAS Report
-🔗 https://drive.google.com/file/d/1FYFkRs9CBKNQpwUTWR9Iy3-H6OgCDjwl/view
+🔗 https://github.com/jenishmaharjan27/End-to-End-Security-Assessment/blob/main/report-2e7ff582-a05e-408f-ac52-760f22e967f2.pdf
 
 ---
 
