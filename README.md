@@ -33,7 +33,6 @@ The objective of this project was to perform a complete end-to-end cybersecurity
 ### 1. Research and Documentation
 Initial research was conducted on cybersecurity fundamentals, threat categories, ethical hacking methodologies, and legal guidelines. This phase established a strong theoretical foundation for the assessment.
 
-*Ref 1: Cybersecurity Concepts and CIA Triad Documentation*
 
 ---
 
